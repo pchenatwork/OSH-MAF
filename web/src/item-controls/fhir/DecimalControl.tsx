@@ -1,20 +1,20 @@
-import type { ItemProps } from "../types";
+import type { QuestionnaireItemProps } from "../contract";
 
-export const StringItem = ({
+export const DecimalControl = ({
   item,
   answers,
   setAnswers,
   errors,
   mode,
-}: ItemProps) => {
-  const value = answers[0]?.valueString ?? "";
+}: QuestionnaireItemProps) => {
+  const selected = answers[0]?.valueDecimal ?? "";
   const id = `q-${item.linkId}`;
 
   if (mode !== "enter") {
     return (
       <div className="item">
         <span className="label">{item.text}</span>
-        <span className="value">{value || "—"}</span>
+        <span className="value">{selected ?? "—"}</span>
       </div>
     );
   }
@@ -26,18 +26,17 @@ export const StringItem = ({
         {item.required && <span aria-hidden="true"> *</span>}
       </label>
       <input
+        type="number"
         id={id}
-        type="text"
-        value={value}
-        aria-required={item.required || undefined}
+        value={selected}
         aria-invalid={errors.length > 0 || undefined}
-        aria-describedby={errors.length ? `${id}-err` : undefined}
-        onChange={(e) =>
-          setAnswers(e.target.value ? [{ valueString: e.target.value }] : [])
-        }
+        onChange={(e) => {
+          const value = e.target.value ? parseFloat(e.target.value) : undefined;
+          setAnswers(value !== undefined ? [{ valueDecimal: value }] : []);
+        }}
       />
       {errors.length > 0 && (
-        <div id={`${id}-err`} role="alert" className="error">
+        <div role="alert" className="error">
           {errors.join(" ")}
         </div>
       )}

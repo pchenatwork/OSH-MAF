@@ -1,12 +1,12 @@
-import type { ItemProps } from "../types";
+import type { QuestionnaireItemProps } from "../contract";
 
-export const BooleanItem = ({
+export const BooleanControl = ({
   item,
   answers,
   setAnswers,
   errors,
   mode,
-}: ItemProps) => {
+}: QuestionnaireItemProps) => {
   const value = answers[0]?.valueBoolean;
   const id = `q-${item.linkId}`;
 

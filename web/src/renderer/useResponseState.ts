@@ -5,7 +5,7 @@ import type {
   QuestionnaireResponse,
   QuestionnaireResponseItem,
   QuestionnaireResponseItemAnswer,
-} from "fhir/r4";
+} from "../item-controls/contract";
 
 /** Build an empty response mirroring the questionnaire's item tree. */
 function scaffold(
