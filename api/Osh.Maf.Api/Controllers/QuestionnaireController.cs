@@ -32,8 +32,9 @@ public sealed class QuestionnaireController(FormDefinitionRepository repo) : Con
     }
 
     [HttpPost]
-    [Consumes("application/fhir+json")]
-    [ProducesResponseType(typeof(Questionnaire), StatusCodes.Status201Created)]
+    [Consumes("application/fhir+json", "application/json")] //Declares "Content-Types" the action accepts (for model binding and documentation).
+    [ProducesResponseType(typeof(Questionnaire), StatusCodes.Status201Created)] 
+    // possible response HTTP status codes and the CLR type returned. Useful for Swagger/OpenAPI and client generation.
     [ProducesResponseType(typeof(OperationOutcome), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(OperationOutcome), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Publish([FromBody] Questionnaire q)

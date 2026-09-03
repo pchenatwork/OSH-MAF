@@ -15,6 +15,7 @@ public sealed class QuestionnaireResponseController(
     ResponseValidator validator) : ControllerBase
 {
     [HttpPost]
+    [Consumes("application/fhir+json", "application/json")]
     public async Task<IActionResult> Create([FromBody] QuestionnaireResponse r)
     {
         if (string.IsNullOrWhiteSpace(r.Questionnaire))
@@ -53,6 +54,7 @@ public sealed class QuestionnaireResponseController(
     }
 
     [HttpPut("{id:guid}")]
+    [Consumes("application/fhir+json", "application/json")]
     public async Task<IActionResult> Update(
         Guid id, [FromBody] QuestionnaireResponse r)
     {

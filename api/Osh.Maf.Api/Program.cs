@@ -1,4 +1,5 @@
 using Hl7.Fhir.Serialization;
+using Microsoft.AspNetCore.Mvc;
 using Osh.Maf.Api.Validation;
 using Osh.Maf.Data;
 using Scalar.AspNetCore;
@@ -6,7 +7,12 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
-    .AddControllers()
+    .AddControllers(options =>
+    {
+        // ** Assume ALL the endpoints emit 'application/fhir+json' **
+        // Revise if we have some other endpoints in this project that is not dealing with FHIR
+        options.Filters.Add(new ProducesAttribute("application/fhir+json"));
+    })
     .AddJsonOptions(o => o.JsonSerializerOptions.ForFhir());
 
 builder.Services.AddOpenApi(options =>
@@ -24,9 +30,28 @@ builder.Services.AddOpenApi(options =>
                 $"FHIR R4 {t.Name}. Post raw application/fhir+json. " +
                 $"Spec: http://hl7.org/fhir/R4/{t.Name.ToLowerInvariant()}.html";
         }
-        return System.Threading.Tasks.Task.CompletedTask;
+        return Task.CompletedTask;
     });
 });
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var messages = context.ModelState
+            .Where(kv => kv.Value?.Errors.Count > 0)
+            .SelectMany(kv => kv.Value!.Errors.Select(e =>
+                string.IsNullOrWhiteSpace(kv.Key)
+                    ? e.ErrorMessage
+                    : $"{kv.Key}: {e.ErrorMessage}"));
+
+        return new ObjectResult(Osh.Maf.Api.Outcomes.FromMessages(messages))
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            ContentTypes = { "application/fhir+json" }
+        };
+    };
+});
+
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
 

@@ -38,4 +38,13 @@ public static class Outcomes
             }
         ]
         };
+    public static OperationOutcome FromMessages(IEnumerable<string> messages) => new()
+    {
+        Issue = messages.Select(m => new OperationOutcome.IssueComponent
+        {
+            Severity = OperationOutcome.IssueSeverity.Error,
+            Code = OperationOutcome.IssueType.Invalid,
+            Diagnostics = m
+        }).ToList()
+    };
 }
