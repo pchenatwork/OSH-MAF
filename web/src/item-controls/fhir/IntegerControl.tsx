@@ -1,4 +1,5 @@
 import type { QuestionnaireItemProps } from "../contract";
+import { isEditable } from "../contract";
 
 export const IntegerControl = ({
   item,
@@ -10,7 +11,7 @@ export const IntegerControl = ({
   const selected = answers[0]?.valueInteger ?? "";
   const id = `q-${item.linkId}`;
 
-  if (mode !== "enter") {
+  if (!isEditable(mode)) {
     return (
       <div className="item">
         <span className="label">{item.text}</span>

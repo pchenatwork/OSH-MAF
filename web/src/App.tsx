@@ -10,7 +10,7 @@ import "./App.css";
 const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
 
 export default function App() {
-  const [mode, setMode] = useState<RenderMode>("enter");
+  const [mode, setMode] = useState<RenderMode>("edit");
   const [live, setLive] = useState<QuestionnaireResponse | null>(null);
 
   const handleChange = useCallback(
@@ -35,7 +35,7 @@ export default function App() {
     <div className="layout">
       <main>
         <nav className="modes">
-          {(["enter", "view", "print"] as const).map((m) => (
+          {(["edit", "view", "print"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}

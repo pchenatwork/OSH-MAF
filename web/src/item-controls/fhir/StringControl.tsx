@@ -1,4 +1,5 @@
 import type { QuestionnaireItemProps } from "../contract";
+import { isEditable } from "../contract";
 
 export const StringControl = ({
   item,
@@ -10,7 +11,7 @@ export const StringControl = ({
   const value = answers[0]?.valueString ?? "";
   const id = `q-${item.linkId}`;
 
-  if (mode !== "enter") {
+  if (!isEditable(mode)) {
     return (
       <div className="item">
         <span className="label">{item.text}</span>
