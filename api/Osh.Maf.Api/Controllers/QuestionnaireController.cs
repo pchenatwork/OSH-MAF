@@ -32,6 +32,10 @@ public sealed class QuestionnaireController(FormDefinitionRepository repo) : Con
     }
 
     [HttpPost]
+    [Consumes("application/fhir+json")]
+    [ProducesResponseType(typeof(Questionnaire), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OperationOutcome), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationOutcome), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Publish([FromBody] Questionnaire q)
     {
         if (string.IsNullOrWhiteSpace(q.Url) || string.IsNullOrWhiteSpace(q.Version))
