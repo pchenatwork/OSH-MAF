@@ -1,17 +1,18 @@
-import type { ItemProps } from "../types";
+import type { QuestionnaireItemProps } from "../contract";
+import { isEditable } from "../contract";
 
-export const ChoiceItem = ({
+export const ChoiceControl = ({
   item,
   answers,
   setAnswers,
   errors,
   mode,
-}: ItemProps) => {
+}: QuestionnaireItemProps) => {
   const selected = answers[0]?.valueCoding?.code ?? "";
   const id = `q-${item.linkId}`;
   const options = item.answerOption ?? [];
 
-  if (mode !== "enter") {
+  if (!isEditable(mode)) {
     const display = options.find((o) => o.valueCoding?.code === selected)
       ?.valueCoding?.display;
     return (

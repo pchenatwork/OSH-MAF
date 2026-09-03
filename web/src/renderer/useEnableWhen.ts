@@ -7,7 +7,7 @@ import type {
   QuestionnaireResponse,
   QuestionnaireResponseItem,
   QuestionnaireResponseItemAnswer,
-} from "fhir/r4";
+} from "../item-controls/contract";
 
 const ENABLE_WHEN_EXPR =
   "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-enableWhenExpression";

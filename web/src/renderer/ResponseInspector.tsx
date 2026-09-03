@@ -1,4 +1,4 @@
-import type { QuestionnaireResponse } from "fhir/r4";
+import type { QuestionnaireResponse } from "../item-controls/contract";
 
 export function ResponseInspector({
   response,

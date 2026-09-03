@@ -1,4 +1,4 @@
-import type { Questionnaire, QuestionnaireResponse } from "fhir/r4";
+import type { Questionnaire, QuestionnaireResponse } from "../item-controls/contract";
 
 const FHIR_JSON = "application/fhir+json";
 

@@ -2,7 +2,9 @@ import type {
   Questionnaire,
   QuestionnaireItem,
   QuestionnaireResponse,
-} from "fhir/r4";
+  QuestionnaireResponseItem,
+  QuestionnaireResponseItemAnswer,
+} from "../item-controls/contract";
 import { makeIsEnabled } from "./useEnableWhen";
 
 export function validateClient(
@@ -16,7 +18,10 @@ export function validateClient(
     (errors[linkId] ??= []).push(msg);
   };
 
-  const findAnswers = (items: any[] | undefined, linkId: string): any[] => {
+  const findAnswers = (
+    items: QuestionnaireResponseItem[] | undefined,
+    linkId: string,
+  ): QuestionnaireResponseItemAnswer[] => {
     for (const it of items ?? []) {
       if (it.linkId === linkId) return it.answer ?? [];
       const f = findAnswers(it.item, linkId);

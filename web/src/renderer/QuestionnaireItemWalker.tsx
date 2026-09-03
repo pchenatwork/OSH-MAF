@@ -1,9 +1,9 @@
 import type {
   QuestionnaireItem,
   QuestionnaireResponseItemAnswer,
-} from "fhir/r4";
-import { resolveComponent } from "../registry";
-import { useRenderMode } from "./RenderMode";
+} from "../item-controls/contract";
+import { resolveItemControl } from "../item-controls";
+import { useRenderMode } from "./renderModeContext";
 
 /**
  * The walker is a recursive component that traverses the questionnaire item tree and
@@ -18,7 +18,7 @@ export interface WalkerProps {
   isEnabled: (item: QuestionnaireItem) => boolean;
 }
 
-export function ItemWalker({
+export function QuestionnaireItemWalker({
   items,
   getAnswers,
   setAnswers,
@@ -32,7 +32,7 @@ export function ItemWalker({
       {items.map((item) => {
         if (!isEnabled(item)) return null;
 
-        const Component = resolveComponent(item);
+        const Component = resolveItemControl(item);
 
         return (
           <Component
@@ -44,7 +44,7 @@ export function ItemWalker({
             mode={mode}
           >
             {item.item && (
-              <ItemWalker
+              <QuestionnaireItemWalker
                 items={item.item}
                 getAnswers={getAnswers}
                 setAnswers={setAnswers}

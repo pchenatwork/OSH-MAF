@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    open: true,
     proxy: {
       "/fhir": { target: "http://localhost:5080", changeOrigin: true },
     },

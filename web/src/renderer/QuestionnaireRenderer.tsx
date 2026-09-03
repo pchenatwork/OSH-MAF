@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import type { Questionnaire, QuestionnaireResponse } from "fhir/r4";
-import { ItemWalker } from "./ItemWalker";
+import type {
+  Questionnaire,
+  QuestionnaireResponse,
+} from "../item-controls/contract";
+import { QuestionnaireItemWalker } from "./QuestionnaireItemWalker";
 import { RenderModeProvider } from "./RenderMode";
 import { useResponseState } from "./useResponseState";
-import type { RenderMode } from "../registry/types";
+import type { RenderMode } from "../item-controls/contract";
+import { isEditable } from "../item-controls/contract";
 import { makeIsEnabled, pruneDisabled } from "./useEnableWhen";
 import { validateClient } from "./clientValidation";
 
@@ -17,7 +21,7 @@ interface Props {
 //The renderer entry point
 export function QuestionnaireRenderer({
   questionnaire,
-  mode = "enter",
+  mode = "edit",
   onSubmit,
   onChange,
   serverErrors = {},
@@ -55,14 +59,14 @@ export function QuestionnaireRenderer({
         <h1>
           {questionnaire.title} - (Ver: {questionnaire.version})
         </h1>
-        <ItemWalker
+        <QuestionnaireItemWalker
           items={questionnaire.item ?? []}
           getAnswers={getAnswers}
           setAnswers={setAnswers}
           errors={errors}
           isEnabled={isEnabled}
         />
-        {mode === "enter" && <button type="submit">Submit</button>}
+        {isEditable(mode) && <button type="submit">Submit</button>}
       </form>
     </RenderModeProvider>
   );

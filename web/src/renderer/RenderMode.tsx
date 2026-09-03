@@ -1,10 +1,6 @@
-import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
-import type { RenderMode } from "../registry/types";
-
-const Ctx = createContext<RenderMode>("enter");
-
-export const useRenderMode = () => useContext(Ctx);
+import type { RenderMode } from "../item-controls/contract";
+import { RenderModeContext } from "./renderModeContext";
 
 export const RenderModeProvider = ({
   mode,
@@ -12,4 +8,8 @@ export const RenderModeProvider = ({
 }: {
   mode: RenderMode;
   children: ReactNode;
-}) => <Ctx.Provider value={mode}>{children}</Ctx.Provider>;
+}) => (
+  <RenderModeContext.Provider value={mode}>
+    {children}
+  </RenderModeContext.Provider>
+);

@@ -1,16 +1,16 @@
 import { useCallback, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { QuestionnaireResponse } from "fhir/r4";
+import type { QuestionnaireResponse } from "./item-controls/contract";
 import { fetchQuestionnaire } from "./api/questionnaires";
 import { QuestionnaireRenderer } from "./renderer/QuestionnaireRenderer";
 import { ResponseInspector } from "./renderer/ResponseInspector";
-import type { RenderMode } from "./registry/types";
+import type { RenderMode } from "./item-controls/contract";
 import "./App.css";
 
 const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
 
 export default function App() {
-  const [mode, setMode] = useState<RenderMode>("enter");
+  const [mode, setMode] = useState<RenderMode>("edit");
   const [live, setLive] = useState<QuestionnaireResponse | null>(null);
 
   const handleChange = useCallback(
@@ -35,7 +35,7 @@ export default function App() {
     <div className="layout">
       <main>
         <nav className="modes">
-          {(["enter", "view", "print"] as const).map((m) => (
+          {(["edit", "view", "print"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMode(m)}
