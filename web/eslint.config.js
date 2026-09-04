@@ -25,16 +25,8 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
-  // FHIR types enter through exactly one file.
-  {
-    files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/item-controls/contract.ts"],
-    rules: {
-      "no-restricted-imports": ["error", { paths: [FHIR_R4] }],
-    },
-  },
 
-  // The engine stays domain-agnostic.
+  // Rule 1: The engine stays domain-agnostic.
   //
   // Flat config REPLACES rule options rather than merging them, and this block
   // matches a subset of the one above. It must therefore restate FHIR_R4, or
@@ -63,6 +55,15 @@ export default defineConfig([
           ],
         },
       ],
+    },
+  },
+
+  // Rule 2: FHIR types enter through exactly one file.
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/item-controls/contract.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { paths: [FHIR_R4] }],
     },
   },
 ]);
