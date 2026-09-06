@@ -25,14 +25,65 @@
   --item-margin: 0.35rem;
 }
 
-/* Only the Y/N/U rows put the answer before the question text, the way the
-   paper MAF prints this panel. The follow-ups stay label-first — an input
-   ahead of the words "How many times" reads backwards.
+/* THE SHAPE OF ONE LINE ITEM
+
+     [ O Y  O N  O U ]  History of asthma-related hospitalizations *
+                        How many times *   [____]
+                        Last occurrence    [__/__/____]
+
+   Two forms feed this panel and their trees do not match. asthma-maf wraps
+   each line in its own group; toy-form keeps the same items flat under the
+   panel. Nothing below cares: every selector is a descendant selector, and
+   the hook it keys on is stamped by Field.tsx at whatever depth the item
+   sits. Groups do not render through Field, so `[data-item-type]` never
+   matches a line wrapper — only the answer and the follow-ups inside it.
 
    Targeted by attribute rather than by class on purpose: a scoped class name
    cannot cross a module boundary, but data-item-type is a hook Field.tsx
    publishes for exactly this. */
+
+/* Line 1. Only the Y/N/U rows put the answer before the question text, the
+   way the paper MAF prints this panel. The follow-ups stay label-first — an
+   input ahead of the words "How many times" reads backwards. */
 .rows [data-item-type="choice"] {
   --item-field-order: 1; /* the answer, rendered first... */
   --item-label-order: 2; /* ...then the question text */
+}
+
+/* The line wrapper, where there is one. GroupControl draws a bordered
+   fieldset with a legend, and inside a panel that already draws its own frame
+   both are noise — worse, the legend repeats verbatim the question text the
+   choice row on line 1 already renders as its label. Hiding it costs the
+   group its accessible name, which is the right trade precisely because that
+   name was a duplicate.
+
+   Element selectors rather than class names: `fieldset` and `legend` are
+   structure, not style, so reading them does not breach the module boundary
+   the way naming GroupControl's `.group` would. */
+.rows fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 0.5rem;
+  min-width: 0; /* or the fieldset refuses to shrink inside the panel */
+}
+.rows fieldset > legend {
+  display: none;
+}
+
+/* The follow-up block: everything on the line that is not the answer. It
+   drops below line 1, indented clear of the Y/N/U column, and takes a fixed
+   label column so "How many times" and "Last occurrence" put their inputs at
+   the same x. Both numbers are tuning values, in rem so they track the
+   reader's font size rather than pinning to a device pixel. */
+.rows [data-item-type]:not([data-item-type="choice"]) {
+  margin-left: 6.25rem;
+  --item-columns: 9rem 1fr;
+}
+
+/* Under 720px the shared sheet has already dropped every item to one column,
+   so the only thing left to do is stop the indent eating the width. */
+@media (max-width: 720px) {
+  .rows [data-item-type]:not([data-item-type="choice"]) {
+    margin-left: 1.5rem;
+  }
 }

@@ -3887,6 +3887,32 @@ It is the section 8 gap report rendering itself.
 control up front and is a miserable retrofit. It is also how a signed form is displayed —
 a hard requirement.
 
+**`children` is the only child channel; `childSlots` was removed (YAGNI).**
+*Rejected: handing a control its children keyed by linkId suffix, so it could position
+each one individually.* It was declared in `QuestionnaireItemProps`, never passed by the
+walker, and shipped with a `slot()` helper whose miss case returned `null`. Three OSH
+controls depended on it, so all three rendered empty shells — and nothing failed. No type
+error, no lint error, no test.
+
+Removing it exposed why the rot went unnoticed: all three had been written against a
+definition that does not exist. The suffixes they addressed — `drug`/`route`/`freq`/`prn`,
+`name`/`credential`/`license`/`npi`, `statement`/`student`/`parent` — appear in **zero**
+items of `asthma-maf-2026.02.json`, and `osh-attestation` sits on `boolean` leaves with no
+children at all. A mechanism that never runs cannot disagree with reality loudly enough to
+be noticed.
+
+The rebuilt controls read `children` plus the shared `--item-*` style API.
+`MedicationOrderControl` auto-fits its grid because order groups carry between one and
+eight children and no two agree on which; `AttestationControl` renders its own checkbox,
+being a leaf rather than a container. `RiskPanelControl` never used slots and was the
+evidence they were unnecessary.
+
+*If identity addressing is ever genuinely needed,* it should not come back as a prop.
+`Field.tsx` already stamps `data-item-type`; a `data-link-id` beside it gives CSS the same
+reach without widening the contract, and its failure mode is a field in the wrong column
+rather than a field that silently does not render. On a medication order that difference
+is a safety property, not a preference.
+
 **State held as a real `QuestionnaireResponse`, not a flat `{ linkId: value }` map.** A
 flat map is more convenient for two days, then needs a serializer, then a deserializer,
 then breaks on `repeats`.

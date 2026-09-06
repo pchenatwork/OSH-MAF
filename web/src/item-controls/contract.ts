@@ -105,15 +105,15 @@ export interface QuestionnaireItemProps {
   errors: string[];
   mode: RenderMode;
 
-  /** Children in document order. Group items only. */
-  children?: ReactNode;
-
   /**
-   * The same children, already rendered, keyed by their linkId — so a custom
-   * control can place them individually instead of accepting document order.
-   * Group items only. See §6.4.
+   * Children in document order. Group items only.
+   *
+   * Deliberately opaque: a control places the block, not the pieces. An
+   * earlier `childSlots` prop handed the same children back keyed by linkId
+   * suffix so a control could position each one — it was never wired up, and
+   * removing it cost nothing. See Appendix F.
    */
-  childSlots?: Record<string, ReactNode>;
+  children?: ReactNode;
 }
 
 /** A component that renders one Questionnaire.item. */

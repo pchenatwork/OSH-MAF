@@ -1,18 +1,25 @@
-/* Styles for AttestationControl.tsx.
-
-   NOTE: these class names existed in the .tsx with no stylesheet behind them.
-   Minimal and structural on purpose — see SignatureBlockControl.module.css. */
+/* Styles for AttestationControl.tsx. */
 
 .attestation {
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--item-margin, 1rem);
+  max-width: 46rem;
+}
+
+/* Checkbox in front, statement beside it, and the statement's second and
+   later lines aligned under the first rather than under the box. */
+.row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  font-weight: 400;
 }
 
 .statement {
-  margin-bottom: 0.75rem;
+  white-space: pre-line;
 }
 
-.parties {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
+/* view / print: a drawn box, since there is no live input to show. */
+.mark {
+  margin-right: 0.5rem;
 }
