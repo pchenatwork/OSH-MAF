@@ -1,0 +1,59 @@
+/* Vocabulary shared by every item control, FHIR and OSH alike.
+
+   A rule earns a place here only when more than one control uses it. Anything
+   used by exactly one control belongs in that control's own .module.css.
+
+   These names are scoped by the compiler, so a control imports this file
+   explicitly (`import shared from "../item-controls.module.css"`) — there is
+   no ambient stylesheet any more, and that is the point. */
+
+/* The default one-item-per-row shape: label above, input below. */
+.item {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.item label,
+.label {
+  font-weight: 600;
+}
+.item input,
+.item select {
+  padding: 0.4rem;
+  font: inherit;
+  max-width: 24rem;
+}
+
+/* Every control's read-only branch renders its answer through this, whether
+   or not it sits inside .item. */
+.value {
+  color: #444;
+}
+
+.error {
+  color: #b00020;
+  font-size: 0.875rem;
+}
+
+/* GroupControl. Shared because osh/ controls render group shells too. */
+.group {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+.group > legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+}
+
+/* Loud on purpose — this is the extensibility gap report rendering itself.
+   Used by UnsupportedControl and by every not-yet-implemented placeholder
+   control, which is why it lives here rather than with UnsupportedControl. */
+.unsupported {
+  border: 2px dashed #d97706;
+  background: #fffbeb;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  font-family: ui-monospace, monospace;
+}

@@ -1,0 +1,18 @@
+/* Styles for AttestationControl.tsx.
+
+   NOTE: these class names existed in the .tsx with no stylesheet behind them.
+   Minimal and structural on purpose — see SignatureBlockControl.module.css. */
+
+.attestation {
+  margin-bottom: 1.5rem;
+}
+
+.statement {
+  margin-bottom: 0.75rem;
+}
+
+.parties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}

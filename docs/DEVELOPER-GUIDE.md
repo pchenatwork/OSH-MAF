@@ -97,10 +97,13 @@ maf-poc/
 │   ├── Osh.Maf.Data/                      repositories + .sql migrations
 │   └── Osh.Maf.Tests/
 ├── web/src/
+│   ├── index.css                          global tokens + resets — NOT a module
+│   ├── App.module.css                     app shell only
 │   ├── renderer/                          engine: walks the tree, owns state
 │   ├── item-controls/
 │   │   ├── contract.ts                    the props contract + RenderMode
 │   │   ├── index.ts                       registry + resolveItemControl
+│   │   ├── item-controls.module.css       vocabulary shared by every control
 │   │   ├── fhir/                          keyed by item.type
 │   │   └── osh/                           keyed by item-control extension
 │   └── api/                               typed fetch clients
@@ -115,6 +118,7 @@ maf-poc/
 | FHIR version | Only `contract.ts` imports `fhir/r4` | ESLint `no-restricted-imports` (§3.1) |
 | Definition immutability | No `UPDATE` on `FormDefinition` | SQL trigger (§2.2) |
 | No asthma in the engine | `grep -ril "asthma\|inhaler\|albuterol" web/src --exclude-dir=osh` | §6.4 checkpoint |
+| Style keys resolve | Every `styles.x` has a selector; every selector is used | `npm run audit:css` (§3.9) |
 
 ## Naming at a glance
 
@@ -124,6 +128,8 @@ maf-poc/
 | Registry-resolvable component | `<Type>Control` | `BooleanControl`, `MedicationOrderControl` |
 | The registry map | — | `itemControlRegistry` |
 | Resolution function | — | `resolveItemControl` |
+| A component's stylesheet | `<Component>.module.css`, beside it | `ChoiceControl.module.css` |
+| A folder's shared stylesheet | `<folder-name>.module.css` | `item-controls.module.css` |
 
 Full convention and rationale: Appendix E.
 
@@ -1323,12 +1329,15 @@ web/src/
 └── item-controls/         the leaves: one component per item type
     ├── contract.ts        QuestionnaireItemProps, QuestionnaireItemControl, RenderMode
     ├── index.ts           the registry map + resolveItemControl
+    ├── item-controls.module.css   vocabulary shared by every control (§3.9)
     ├── fhir/              keyed by item.type — standard, domain-free
     │   ├── StringControl.tsx
-    │   ├── BooleanControl.tsx
+    │   ├── ChoiceControl.tsx
+    │   ├── ChoiceControl.module.css    styles for that control alone
     │   └── ...
     └── osh/               keyed by the item-control extension — THE ONLY
         ├── MedicationOrderControl.tsx      domain-aware code in the app
+        ├── MedicationOrderControl.module.css
         └── ...
 ```
 
@@ -2118,7 +2127,7 @@ import { fetchQuestionnaire } from './api/questionnaires';
 import { QuestionnaireRenderer } from './renderer/QuestionnaireRenderer';
 import { ResponseInspector } from './renderer/ResponseInspector';
 import type { RenderMode } from './item-controls/contract';
-import './App.css';
+import styles from './App.module.css';
 
 const TOY_URL = 'http://schools.nyc.gov/osh/Questionnaire/toy';
 
@@ -2137,9 +2146,9 @@ export default function App() {
   if (error) return <p role="alert">Could not load: {(error as Error).message}</p>;
 
   return (
-    <div className="layout">
-      <main>
-        <nav className="modes">
+    <div className={styles.layout}>
+      <main className={styles.main}>
+        <nav className={styles.modes}>
           {(['edit', 'view', 'print'] as const).map(m => (
             <button
               key={m}
@@ -2185,42 +2194,118 @@ createRoot(document.getElementById('root')!).render(
 );
 ```
 
-### Enough CSS to see what's happening
+### Stylesheets: three tiers, one module per component
 
-`web/src/App.css` — replace the template's contents:
+Every stylesheet in the app is a **CSS Module** (`*.module.css`) except `index.css`.
+Vite compiles them with no configuration, no plugin and no dependency — CSS Modules is a
+build feature, not a library. Class names are hashed at build time, so two files may both
+declare `.label` without either knowing the other exists.
+
+The tier a rule belongs to is decided by one question: **how many components use it?**
+
+| Tier | File | Holds |
+|---|---|---|
+| Global | `src/index.css` | Colour tokens, `:root`, `body`, bare element rules. **Not a module.** |
+| App shell | `src/App.module.css` | `.layout`, `.main`, `.modes` — the page frame, nothing about a form |
+| Shared vocabulary | `src/item-controls/item-controls.module.css` | `.item`, `.label`, `.value`, `.error`, `.group`, `.unsupported` |
+| One control | `<Control>.module.css`, beside the `.tsx` | Everything that control alone uses |
+
+A rule earns the shared tier only when **more than one** control uses it. A rule used by
+exactly one control lives with that control. When a control-local rule starts being needed
+by a second control, that is the signal it was shared vocabulary all along: move it up.
+
+**A control never imports another control's stylesheet.** Both `fhir/` and `osh/` controls
+import the shared module; nothing else crosses. A control reaching into a sibling's module
+is the same mistake as a control importing a sibling component, and it is now hard to do by
+accident — before modules, `RiskPanelControl` was rendering `className="attestation"`,
+borrowing `AttestationControl`'s look through the global namespace. Scoped names make that
+borrowing impossible to express without an explicit import you would notice in review.
+
+The import shape, from `ChoiceControl.tsx`:
+
+```tsx
+import styles from "./ChoiceControl.module.css";    // this control's own
+import shared from "../item-controls.module.css";   // the shared vocabulary
+
+<div className={styles.root}>
+  <span className={shared.value}>{display}</span>
+</div>
+```
+
+Two aliases, always the same two words: `styles` for local, `shared` for the vocabulary.
+A reader can tell which tier a class came from without opening anything.
+
+#### Naming inside a module
+
+**Drop the BEM prefixes.** They existed to prevent collisions the compiler now prevents.
+`.choice__label` becomes `.label`; it cannot collide with `.label` in the shared module.
+Name for the **role within this control** — `.root`, `.field`, `.options`, `.option` —
+and use camelCase, so `styles.optionsHorizontal` reads as an identifier rather than
+`styles["options-horizontal"]`.
+
+#### Why `index.css` is deliberately not a module
+
+CSS Modules scopes **class selectors**. It does not scope `:root`, `body`, `h1`, or any
+other bare element selector — those stay global wherever you put them. Moving them into a
+module would disguise their reach without changing it. `index.css` is where global belongs,
+and keeping it plainly global is the honest signal that everything in it affects everything.
+
+That is also where the colour tokens live. Every tier below consumes them through
+`var(--…)` rather than repeating hex values, so a theme change stays one edit.
+
+#### The one thing CSS Modules will not catch
+
+`vite/client` types a module as `{ readonly [key: string]: string }` — an index signature.
+Every key is therefore valid to TypeScript, including the ones you misspelled:
+
+```tsx
+className={styles.claer}   // compiles clean, renders className={undefined}
+```
+
+No type error, no lint error, no runtime error. Just a component that quietly renders
+without its styles. `npm run audit:css` (`web/scripts/audit-css-modules.mjs`) closes that
+hole by cross-referencing both directions and exiting non-zero on either:
+
+| Finding | Means |
+|---|---|
+| `styles.x` has no selector | The element renders with no class |
+| `.x` is never referenced | Dead CSS |
+
+Injecting `styles.claer` into `ChoiceControl` is the way to confirm the guard still works:
+`tsc` exits 0 and says nothing; the audit exits 1 and names the file and the key.
+
+#### What this does *not* solve
+
+**Precedence.** Modules scope names; they do not order rules. If a control ever puts
+`shared.item` and `styles.root` on the same element and both set `margin-bottom`, the
+winner is decided by the order Vite concatenated the files — which follows the module
+import graph, not this tier hierarchy. No control does that today, which is the only
+reason it is safe to defer.
+
+The fix, when it is needed, is four lines of plain CSS. Declare the order once in
+`index.css`:
 
 ```css
-:root { font-family: system-ui, sans-serif; }
-body { margin: 0; }
-
-.layout { display: grid; grid-template-columns: 1fr 420px; gap: 2rem; padding: 1.5rem; }
-main { max-width: 46rem; }
-
-.modes { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
-.modes button[aria-pressed="true"] { font-weight: 700; outline: 2px solid currentColor; }
-
-.item { margin-bottom: 1rem; display: flex; flex-direction: column; gap: .25rem; }
-.item label, .item .label { font-weight: 600; }
-.item input, .item select { padding: .4rem; font: inherit; max-width: 24rem; }
-.item .value { color: #444; }
-
-fieldset.group { border: 1px solid #ccc; padding: 1rem; margin-bottom: 1.5rem; }
-fieldset.group > legend { font-weight: 700; padding: 0 .5rem; }
-
-.error { color: #b00020; font-size: .875rem; }
-
-/* Loud on purpose — this is your section 8 gap report. */
-.unsupported {
-  border: 2px dashed #d97706; background: #fffbeb;
-  padding: .75rem; margin-bottom: 1rem; font-family: ui-monospace, monospace;
-}
-
-.inspector { position: sticky; top: 1.5rem; align-self: start; }
-.inspector pre {
-  background: #0f172a; color: #e2e8f0; padding: 1rem; border-radius: 6px;
-  font-size: .75rem; max-height: 80vh; overflow: auto;
-}
+@layer app, item-controls, control;
 ```
+
+then wrap each file's rules in its layer. A `control` rule then beats an `item-controls`
+rule regardless of import order **and regardless of specificity**, which is exactly the
+override a control needs and kills the specificity arms race before it starts. Deliberately
+not adopted yet: adopting scoping and precedence in one change makes a diff you cannot
+evaluate in halves.
+
+#### The rule that actually matters long-term
+
+**Style names must never leave `item-controls/`.** Not into `renderer/`, and above all not
+into a definition. A `Questionnaire` carrying `"class": "flex gap-2"` in an extension is a
+form whose appearance can never be changed, because by N3 that JSON is versioned and
+immutable — you would be shipping a stylesheet into the database.
+
+As long as styling stays inside `item-controls/`, the styling *technology* is a
+folder-local decision. Swapping CSS Modules for Tailwind, or anything else, later is a day
+of mechanical work rather than an architectural migration. That option is worth more than
+whichever tool is currently fashionable.
 
 ## 3.10 Verify
 
@@ -3598,6 +3683,23 @@ which folder a control lives in without opening either.
 have `item.type`, FHIR datatypes, and TypeScript types all in play. The file holds one
 thing — the contract every item control implements.
 
+## Stylesheets
+
+| Pattern | Means | Example |
+|---|---|---|
+| `<Component>.module.css` | Styles for exactly one component, beside it | `ChoiceControl.module.css` |
+| `<folder-name>.module.css` | That folder's shared sheet | `item-controls.module.css` |
+
+A stylesheet named after a **folder** is shared by everything in it; a stylesheet named
+after a **component** belongs to that component alone. The filename answers "who is allowed
+to use this?" without opening it.
+
+Inside a module, class names carry no BEM prefix — the compiler scopes them, so `.label`
+in `ChoiceControl.module.css` and `.label` in `item-controls.module.css` are different
+classes. Name for the role within the file (`.root`, `.field`, `.option`) in camelCase, so
+the JS side reads `styles.optionsHorizontal` rather than bracket notation. Full convention
+in §3.9.
+
 ## Exceptions to the rule
 
 **`RenderMode`, `isEditable`, `isReadOnly`, `isPrint`.** FHIR defines nothing for render
@@ -3737,6 +3839,23 @@ then breaks on `repeats`.
 **Vite proxy rather than relying on CORS.** The browser only talks to 5173, so there is no
 cross-origin request to misconfigure, and the API port lives in one file.
 
+**CSS Modules, one stylesheet per component, three tiers (§3.9).**
+*Rejected: one global `App.css`.* It worked until the first control needed its own layout,
+at which point the file grew comments naming which component each block served — a comment
+that only exists because the rule is in the wrong file. Global CSS also hides its
+dependencies: `.unsupported` looked control-specific and turned out to be used by seven
+files, which nobody could see without grepping.
+*Rejected: styled-components.* It would genuinely suit the seam — styles inside a component
+cannot leak into `renderer/` — but it went into maintenance mode in March 2025, costs a
+runtime style engine, and is a dependency the POC does not need to prove anything.
+*Rejected: Tailwind or any utility framework.* Appendix D, and a styling framework is one
+more variable making `FINDINGS.md` harder to read.
+
+CSS Modules wins because it is not a dependency at all — Vite compiles `*.module.css`
+natively — and because it replaces a naming discipline with a compiler guarantee. Its one
+weakness, that a misspelled key type-checks and silently renders nothing, is covered by
+`npm run audit:css`.
+
 **`AddJsonOptions(o => o.JsonSerializerOptions.ForFhir())` rather than custom formatters.**
 *Rejected: hand-rolled `TextInputFormatter`/`TextOutputFormatter`.* They re-implement what
 the framework already does, and the non-generic
@@ -3808,13 +3927,17 @@ in a half-finished tree.
 | `web/eslint.config.js` | 3.1 | The two seam rules |
 | `web/src/main.tsx` | 3.9 | QueryClientProvider |
 | `web/src/App.tsx` | 3.9 | Shell, mode switcher, inspector |
-| `web/src/App.css` | 3.9 | Enough to see what is happening |
+| `web/src/index.css` | 3.9 | Global tokens and resets — the only non-module sheet |
+| `web/src/App.module.css` | 3.9 | App shell: page frame, mode switcher |
+| `web/scripts/audit-css-modules.mjs` | 3.9 | `npm run audit:css` — catches unresolved style keys |
 | `web/src/api/questionnaires.ts` | 3.9 | Typed fetch clients |
 | `web/src/item-controls/contract.ts` | 3.2 | Props contract, `RenderMode`, predicates, FHIR type re-exports |
 | `web/src/item-controls/index.ts` | 3.7 | `itemControlRegistry`, `resolveItemControl` |
+| `web/src/item-controls/item-controls.module.css` | 3.9 | Vocabulary shared by every control |
 | `web/src/item-controls/fhir/*.tsx` | 3.8 | 12 controls keyed by `item.type` |
 | `web/src/item-controls/fhir/index.ts` | 3.9 | Barrel |
 | `web/src/item-controls/osh/*.tsx` | 6.1 | 4 domain-aware controls |
+| `web/src/item-controls/**/*.module.css` | 3.9 | One sheet per control that needs one |
 | `web/src/renderer/QuestionnaireRenderer.tsx` | 3.6 | Entry point |
 | `web/src/renderer/QuestionnaireItemWalker.tsx` | 3.5 | The recursion |
 | `web/src/renderer/useResponseState.ts` | 3.3 | Owns the working response |
@@ -3822,6 +3945,7 @@ in a half-finished tree.
 | `web/src/renderer/clientValidation.ts` | 3.9 stub, 4.5 real | UX-level validation |
 | `web/src/renderer/RenderMode.tsx` | 3.4 | Context provider |
 | `web/src/renderer/ResponseInspector.tsx` | 3.9 | Live JSON panel |
+| `web/src/renderer/ResponseInspector.module.css` | 3.9 | Styles for that panel |
 
 ## Definitions and outputs
 

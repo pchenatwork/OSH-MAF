@@ -1,4 +1,5 @@
 import type { QuestionnaireResponse } from "../item-controls/contract";
+import styles from "./ResponseInspector.module.css";
 
 export function ResponseInspector({
   response,
@@ -9,7 +10,7 @@ export function ResponseInspector({
     JSON.stringify(response).match(/"answer":\[\{/g)?.length ?? 0;
 
   return (
-    <aside className="inspector">
+    <aside className={styles.inspector}>
       <h2>
         QuestionnaireResponse <small>({answered} answered)</small>
       </h2>

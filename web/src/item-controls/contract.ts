@@ -8,6 +8,7 @@
 import type {
   Questionnaire,
   QuestionnaireItem,
+  QuestionnaireItemAnswerOption,
   QuestionnaireItemEnableWhen,
   QuestionnaireResponse,
   QuestionnaireResponseItem,
@@ -23,6 +24,7 @@ import type { FC, ReactNode } from "react";
 export type {
   Questionnaire,
   QuestionnaireItem,
+  QuestionnaireItemAnswerOption,
   QuestionnaireItemEnableWhen,
   QuestionnaireResponse,
   QuestionnaireResponseItem,

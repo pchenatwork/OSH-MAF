@@ -1,0 +1,9 @@
+/* Styles for RiskPanelControl.tsx.
+
+   The control previously reused AttestationControl's class name. Scoped names
+   make that borrowing impossible to do by accident, which is the point — a
+   risk panel is not an attestation. */
+
+.panel {
+  margin-bottom: 1.5rem;
+}

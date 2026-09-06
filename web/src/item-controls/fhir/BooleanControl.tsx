@@ -1,5 +1,6 @@
 import type { QuestionnaireItemProps } from "../contract";
 import { isEditable } from "../contract";
+import shared from "../item-controls.module.css";
 
 export const BooleanControl = ({
   item,
@@ -13,9 +14,9 @@ export const BooleanControl = ({
 
   if (!isEditable(mode)) {
     return (
-      <div className="item">
-        <span className="label">{item.text}</span>
-        <span className="value">
+      <div className={shared.item}>
+        <span className={shared.label}>{item.text}</span>
+        <span className={shared.value}>
           {value === undefined ? "—" : value ? "Yes" : "No"}
         </span>
       </div>
@@ -23,7 +24,7 @@ export const BooleanControl = ({
   }
 
   return (
-    <fieldset className="item">
+    <fieldset className={shared.item}>
       <legend>
         {item.text}
         {item.required && <span aria-hidden="true"> *</span>}
@@ -41,7 +42,7 @@ export const BooleanControl = ({
         </label>
       ))}
       {errors.length > 0 && (
-        <div role="alert" className="error">
+        <div role="alert" className={shared.error}>
           {errors.join(" ")}
         </div>
       )}

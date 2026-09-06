@@ -236,6 +236,12 @@
               "text": "Control (see NAEPP Guidelines)",
               "type": "choice",
               "required": true,
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/StructureDefinition/questionnaire-choiceOrientation",
+                  "valueCode": "horizontal"
+                }
+              ],
               "definition": "http://hl7.org/fhir/StructureDefinition/Observation#Observation.valueCodeableConcept",
               "answerOption": [
                 { "valueCoding": { "system": "http://schools.nyc.gov/osh/CodeSystem/naepp-control", "code": "well-controlled", "display": "Well Controlled" } },

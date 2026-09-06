@@ -1,5 +1,7 @@
 import { slot } from "./slot";
 import type { QuestionnaireItemProps } from "../contract";
+import styles from "./MedicationOrderControl.module.css";
+import shared from "../item-controls.module.css";
 
 /**
  * Lays out one medication order as a row: drug, dose, route, frequency, PRN.
@@ -13,23 +15,23 @@ export const MedicationOrderControl = ({
   childSlots,
   errors,
 }: QuestionnaireItemProps) => (
-  <fieldset className="order">
+  <fieldset className={styles.order}>
     {item.text && <legend>{item.text}</legend>}
 
-    <div className="order__grid">
-      <div className="order__cell order__cell--drug">
+    <div className={styles.grid}>
+      <div className={`${styles.cell} ${styles.cellDrug}`}>
         {slot(childSlots, "drug")}
       </div>
-      <div className="order__cell">{slot(childSlots, "dose")}</div>
-      <div className="order__cell">{slot(childSlots, "route")}</div>
-      <div className="order__cell">{slot(childSlots, "freq")}</div>
-      <div className="order__cell order__cell--prn">
+      <div className={styles.cell}>{slot(childSlots, "dose")}</div>
+      <div className={styles.cell}>{slot(childSlots, "route")}</div>
+      <div className={styles.cell}>{slot(childSlots, "freq")}</div>
+      <div className={`${styles.cell} ${styles.cellPrn}`}>
         {slot(childSlots, "prn")}
       </div>
     </div>
 
     {errors.length > 0 && (
-      <div role="alert" className="error">
+      <div role="alert" className={shared.error}>
         {errors.join(" ")}
       </div>
     )}

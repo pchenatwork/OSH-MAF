@@ -1,0 +1,27 @@
+/* Styles for SignatureBlockControl.tsx.
+
+   NOTE: these class names existed in the .tsx with no stylesheet behind them.
+   The rules below are minimal and structural — enough to make the hooks real
+   without inventing a visual design. */
+
+.signature {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.attest {
+  margin-top: 0.75rem;
+}
+
+.stamp {
+  margin-top: 0.75rem;
+  font-style: italic;
+  color: #444;
+}

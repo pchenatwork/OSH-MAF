@@ -5,7 +5,7 @@ import { fetchQuestionnaire } from "./api/questionnaires";
 import { QuestionnaireRenderer } from "./renderer/QuestionnaireRenderer";
 import { ResponseInspector } from "./renderer/ResponseInspector";
 import type { RenderMode } from "./item-controls/contract";
-import "./App.css";
+import styles from "./App.module.css";
 
 //const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
 const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/asthma-maf";
@@ -34,9 +34,9 @@ export default function App() {
     return <p role="alert">Could not load: {(error as Error).message}</p>;
 
   return (
-    <div className="layout">
-      <main>
-        <nav className="modes">
+    <div className={styles.layout}>
+      <main className={styles.main}>
+        <nav className={styles.modes}>
           {(["edit", "view", "print"] as const).map((m) => (
             <button
               key={m}

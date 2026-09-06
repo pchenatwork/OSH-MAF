@@ -1,6 +1,7 @@
 import { slot } from "./slot";
 import { isEditable } from "../contract";
 import type { QuestionnaireItemProps } from "../contract";
+import styles from "./SignatureBlockControl.module.css";
 
 /**
  * Signer identity plus attestation, rendered as one visual unit so that the
@@ -13,20 +14,20 @@ export const SignatureBlockControl = ({
   childSlots,
   mode,
 }: QuestionnaireItemProps) => (
-  <section className="signature" aria-labelledby={`sig-${item.linkId}`}>
+  <section className={styles.signature} aria-labelledby={`sig-${item.linkId}`}>
     <h3 id={`sig-${item.linkId}`}>{item.text}</h3>
 
-    <div className="signature__identity">
+    <div className={styles.identity}>
       {slot(childSlots, "name")}
       {slot(childSlots, "credential")}
       {slot(childSlots, "license")}
       {slot(childSlots, "npi")}
     </div>
 
-    <div className="signature__attest">{slot(childSlots, "attest")}</div>
+    <div className={styles.attest}>{slot(childSlots, "attest")}</div>
 
     {!isEditable(mode) && (
-      <p className="signature__stamp">Signature recorded on submission.</p>
+      <p className={styles.stamp}>Signature recorded on submission.</p>
     )}
   </section>
 );
