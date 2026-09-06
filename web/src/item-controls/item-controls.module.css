@@ -8,8 +8,10 @@
    no ambient stylesheet any more, and that is the point. */
 
 /* The default one-item-per-row shape: label above, input below. */
+/* --item-margin lets a container tighten a run of items without knowing
+   these class names. See ChoiceControl.module.css for the rationale. */
 .item {
-  margin-bottom: 1rem;
+  margin-bottom: var(--item-margin, 1rem);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;

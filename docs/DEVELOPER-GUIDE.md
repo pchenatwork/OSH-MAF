@@ -3839,6 +3839,29 @@ then breaks on `repeats`.
 **Vite proxy rather than relying on CORS.** The browser only talks to 5173, so there is no
 cross-origin request to misconfigure, and the API port lives in one file.
 
+**Native `<input type="date|datetime-local|time">` rather than a picker library.**
+*Rejected: react-day-picker (~35M weekly downloads), react-datepicker, MUI X.* All three
+hand you a `Date`, and FHIR temporal types are **strings** — `valueDate` is `"2026-09-06"`,
+no time and no zone. Converting between the two is where days get lost, in both directions:
+a picker's local-midnight `Date` loses a day through `toISOString()` east of UTC, and a
+date-only string parses as UTC midnight, so reading local calendar parts off it loses a day
+west of UTC. A date of birth that shifts by timezone is a patient-matching bug. A native
+input's `.value` *is* the FHIR string, so no `Date` is ever constructed.
+
+Native also carries the browser's own keyboard and screen-reader support, which §11 would
+otherwise make us owe, and `minValue`/`maxValue` map onto the `min`/`max` attributes with no
+conversion. And a calendar popup is slower than typing for a date the user already knows —
+paging back forty years for a date of birth is actively hostile.
+
+The three temporal controls are thin wrappers over `fhir/TemporalField.tsx`, which owns the
+input and the FHIR-string conversion, so swapping in a library later is one file.
+
+*Revisit when* either of these becomes true: a definition needs **partial dates** (`2026`,
+`2026-09`), which `type="date"` cannot express — `TemporalField` currently degrades to a
+text input so the value is not silently wiped, which is a stopgap and not a design; or the
+form goes public-facing and the browser's unstyleable picker becomes a stated requirement.
+Neither applies to the POC.
+
 **CSS Modules, one stylesheet per component, three tiers (§3.9).**
 *Rejected: one global `App.css`.* It worked until the first control needed its own layout,
 at which point the file grew comments naming which component each block served — a comment

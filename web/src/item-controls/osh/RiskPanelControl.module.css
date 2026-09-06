@@ -1,9 +1,32 @@
 /* Styles for RiskPanelControl.tsx.
 
-   The control previously reused AttestationControl's class name. Scoped names
-   make that borrowing impossible to do by accident, which is the point — a
-   risk panel is not an attestation. */
+   This file restyles its children without naming a single one of their
+   classes. It sets the custom properties ChoiceControl and the shared item
+   vocabulary publish as their style API — see the header of
+   ChoiceControl.module.css for the list and the defaults. */
 
 .panel {
+  border: 1px solid #ccc;
+  padding: 1rem;
   margin-bottom: 1.5rem;
+}
+
+.legend {
+  font-weight: 700;
+  padding: 0 0.5rem;
+}
+
+.rows {
+  /* ChoiceControl's style API: flip the two cells and tighten the rows so
+     seven of them read as one block rather than seven separate questions. */
+  --choice-columns: max-content 1fr; /* answers get their own narrow column */
+  --choice-field-order: 1; /* ...rendered first... */
+  --choice-label-order: 2; /* ...then the question text */
+  --choice-gap: 0.15rem 0.75rem;
+  --choice-margin: 0.15rem;
+
+  /* Shared vocabulary's style API: the conditional follow-ups (how many
+     times / last occurrence) are ordinary .item blocks and would otherwise
+     open a 1rem hole in the middle of the panel. */
+  --item-margin: 0.35rem;
 }

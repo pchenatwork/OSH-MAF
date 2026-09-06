@@ -1,10 +1,7 @@
 import type { QuestionnaireItemProps } from "../contract";
-import shared from "../item-controls.module.css";
+import { TemporalField } from "./TemporalField";
 
-/** Placeholder — not in the lab manual yet. To be implemented. */
-export const DateTimeControl = ({ item }: QuestionnaireItemProps) => (
-  <div className={shared.unsupported} role="note">
-    DateTimeControl type: <code>{item.type}</code> (linkId:{" "}
-    <code>{item.linkId}</code>)
-  </div>
+/** FHIR `dateTime`. All three temporal controls share TemporalField. */
+export const DateTimeControl = (props: QuestionnaireItemProps) => (
+  <TemporalField {...props} kind="dateTime" />
 );

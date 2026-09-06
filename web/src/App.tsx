@@ -7,9 +7,10 @@ import { ResponseInspector } from "./renderer/ResponseInspector";
 import type { RenderMode } from "./item-controls/contract";
 import styles from "./App.module.css";
 
-//const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
-const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/asthma-maf";
-const VERSION = "2026.02";
+const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
+const VERSION = "1.2";
+//const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/asthma-maf";
+//const VERSION = "2026.02";
 
 export default function App() {
   const [mode, setMode] = useState<RenderMode>("edit");
