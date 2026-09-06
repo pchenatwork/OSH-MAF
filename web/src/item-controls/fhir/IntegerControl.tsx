@@ -1,5 +1,6 @@
 import type { QuestionnaireItemProps } from "../contract";
-import { isEditable } from "../contract";
+import { errorIdOf, isEditable } from "../contract";
+import { Field } from "../Field";
 import shared from "../item-controls.module.css";
 
 export const IntegerControl = ({
@@ -14,24 +15,21 @@ export const IntegerControl = ({
 
   if (!isEditable(mode)) {
     return (
-      <div className={shared.item}>
-        <span className={shared.label}>{item.text}</span>
-        <span className={shared.value}>{selected ?? "—"}</span>
-      </div>
+      <Field item={item} id={id} errors={[]}>
+        <span className={shared.value}>{selected === "" ? "—" : selected}</span>
+      </Field>
     );
   }
 
   return (
-    <div className={shared.item}>
-      <label htmlFor={id}>
-        {item.text}
-        {item.required && <span aria-hidden="true"> *</span>}
-      </label>
+    <Field item={item} id={id} errors={errors} htmlFor={id}>
       <input
         type="number"
         id={id}
         value={selected}
+        aria-required={item.required || undefined}
         aria-invalid={errors.length > 0 || undefined}
+        aria-describedby={errors.length ? errorIdOf(id) : undefined}
         onChange={(e) => {
           const value = e.target.value
             ? parseInt(e.target.value, 10)
@@ -39,11 +37,6 @@ export const IntegerControl = ({
           setAnswers(value !== undefined ? [{ valueInteger: value }] : []);
         }}
       />
-      {errors.length > 0 && (
-        <div role="alert" className={shared.error}>
-          {errors.join(" ")}
-        </div>
-      )}
-    </div>
+    </Field>
   );
 };

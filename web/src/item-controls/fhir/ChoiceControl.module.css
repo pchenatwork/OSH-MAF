@@ -1,53 +1,16 @@
 /* Styles for ChoiceControl.tsx.
 
    Class names are scoped by the compiler, so the `choice__` prefixes these
-   rules used to carry are gone: `.label` here cannot collide with `.label`
-   in item-controls.module.css. Name for the role within this control.
+   rules used to carry are gone: `.option` here cannot collide with `.option`
+   in BooleanControl.module.css. Name for the role within this control.
 
-   STYLE API
-   ---------
-   Scoped class names cannot cross a module boundary, so a container that
-   wants to restyle these rows cannot target them by name — correctly, that
-   is the point of modules. Custom properties are inherited values rather
-   than names, so they cross freely. The properties below are this control's
-   supported surface: set them on any ancestor and every ChoiceControl
-   underneath follows. Everything else here is private and may be renamed.
-
-     --choice-columns       grid-template-columns   default: minmax(10rem, 20rem) 1fr
-     --choice-gap           row / column gap        default: 0.5rem 1.5rem
-     --choice-margin        space below a row       default: 1rem
-     --choice-field-order   grid order of choices   default: 0
-     --choice-label-order   grid order of label     default: 0
-
-   Setting field-order below label-order puts the choices first — the layout
-   the paper MAF uses for its Y/N/U panels. See RiskPanelControl.module.css. */
-
-/* Label on the left, choices on the right. */
-.root {
-  display: grid;
-  grid-template-columns: var(--choice-columns, minmax(10rem, 20rem) 1fr);
-  gap: var(--choice-gap, 0.5rem 1.5rem);
-  align-items: start;
-  margin-bottom: var(--choice-margin, 1rem);
-}
-
-/* No item.text — drop the label column rather than leave an empty gutter. */
-.noLabel {
-  grid-template-columns: 1fr;
-}
-
-.label {
-  font-weight: 600;
-  order: var(--choice-label-order, 0);
-}
-
-.field {
-  order: var(--choice-field-order, 0);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  align-items: flex-start;
-}
+   The label/field grid this control used to own now lives in the shared
+   vocabulary (`.item`, `.label`, `.field` in item-controls.module.css), where
+   every control shares it and the label-orientation extension can drive it.
+   The `--choice-*` custom properties it published moved with it and are now
+   `--item-*`; see the STYLE API header there. What is left here is the part
+   that is genuinely choice-specific: how the options stack against each
+   other, which questionnaire-choiceOrientation controls. */
 
 .options {
   display: flex;
@@ -72,10 +35,4 @@
   font: inherit;
   font-size: 0.8rem;
   padding: 0.1rem 0.4rem;
-}
-
-@media (max-width: 720px) {
-  .root {
-    grid-template-columns: 1fr;
-  }
 }

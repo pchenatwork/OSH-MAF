@@ -1,5 +1,6 @@
 import type { QuestionnaireItemProps } from "../contract";
-import { isEditable } from "../contract";
+import { errorIdOf, isEditable } from "../contract";
+import { Field } from "../Field";
 import shared from "../item-controls.module.css";
 
 export const StringControl = ({
@@ -14,35 +15,25 @@ export const StringControl = ({
 
   if (!isEditable(mode)) {
     return (
-      <div className={shared.item}>
-        <span className={shared.label}>{item.text}</span>
+      <Field item={item} id={id} errors={[]}>
         <span className={shared.value}>{value || "—"}</span>
-      </div>
+      </Field>
     );
   }
 
   return (
-    <div className={shared.item}>
-      <label htmlFor={id}>
-        {item.text}
-        {item.required && <span aria-hidden="true"> *</span>}
-      </label>
+    <Field item={item} id={id} errors={errors} htmlFor={id}>
       <input
         id={id}
         type="text"
         value={value}
         aria-required={item.required || undefined}
         aria-invalid={errors.length > 0 || undefined}
-        aria-describedby={errors.length ? `${id}-err` : undefined}
+        aria-describedby={errors.length ? errorIdOf(id) : undefined}
         onChange={(e) =>
           setAnswers(e.target.value ? [{ valueString: e.target.value }] : [])
         }
       />
-      {errors.length > 0 && (
-        <div id={`${id}-err`} role="alert" className={shared.error}>
-          {errors.join(" ")}
-        </div>
-      )}
-    </div>
+    </Field>
   );
 };

@@ -9,6 +9,10 @@ import styles from "./App.module.css";
 
 const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
 const VERSION = "1.2";
+// 1.3 adds the label-orientation demo group. Definitions are immutable, so it
+// is a new row rather than an edit — publish it before switching:
+//   curl -X POST http://localhost:5080/fhir/Questionnaire //     -H "Content-Type: application/fhir+json" //     --data-binary @definitions/toy-form-1.3.json
+//const VERSION = "1.3";
 //const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/asthma-maf";
 //const VERSION = "2026.02";
 

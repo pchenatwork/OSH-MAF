@@ -1,9 +1,9 @@
 /* Styles for RiskPanelControl.tsx.
 
    This file restyles its children without naming a single one of their
-   classes. It sets the custom properties ChoiceControl and the shared item
-   vocabulary publish as their style API — see the header of
-   ChoiceControl.module.css for the list and the defaults. */
+   classes. It sets the custom properties the shared item vocabulary publishes
+   as its style API — see the header of item-controls.module.css for the list
+   and the defaults. */
 
 .panel {
   border: 1px solid #ccc;
@@ -17,16 +17,22 @@
 }
 
 .rows {
-  /* ChoiceControl's style API: flip the two cells and tighten the rows so
-     seven of them read as one block rather than seven separate questions. */
-  --choice-columns: max-content 1fr; /* answers get their own narrow column */
-  --choice-field-order: 1; /* ...rendered first... */
-  --choice-label-order: 2; /* ...then the question text */
-  --choice-gap: 0.15rem 0.75rem;
-  --choice-margin: 0.15rem;
-
-  /* Shared vocabulary's style API: the conditional follow-ups (how many
-     times / last occurrence) are ordinary .item blocks and would otherwise
-     open a 1rem hole in the middle of the panel. */
+  /* Tighten every row so seven of them read as one block rather than seven
+     separate questions. Applies to the whole panel: the Y/N/U choices and the
+     conditional follow-ups (how many times / last occurrence) alike. */
+  --item-columns: max-content 1fr;
+  --item-gap: 0.15rem 0.75rem;
   --item-margin: 0.35rem;
+}
+
+/* Only the Y/N/U rows put the answer before the question text, the way the
+   paper MAF prints this panel. The follow-ups stay label-first — an input
+   ahead of the words "How many times" reads backwards.
+
+   Targeted by attribute rather than by class on purpose: a scoped class name
+   cannot cross a module boundary, but data-item-type is a hook Field.tsx
+   publishes for exactly this. */
+.rows [data-item-type="choice"] {
+  --item-field-order: 1; /* the answer, rendered first... */
+  --item-label-order: 2; /* ...then the question text */
 }

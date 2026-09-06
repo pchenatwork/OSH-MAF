@@ -48,6 +48,44 @@ export const isEditable = (mode: RenderMode): boolean => mode === "edit";
 export const isPrint = (mode: RenderMode): boolean => mode === "print";
 
 /**
+ * How an item places its label against its field.
+ *
+ * The default is horizontal — label on the left — which is the shape of nearly
+ * every row on the paper MAF. An item opts back into label-above-input with a
+ * local extension:
+ *
+ *   http://schools.nyc.gov/osh/StructureDefinition/label-orientation
+ *   valueCode: "horizontal" | "vertical"        (absent -> horizontal)
+ *
+ * This is NOT the HL7 questionnaire-choiceOrientation extension ChoiceControl
+ * reads. That one stacks the answer options relative to *each other*; this one
+ * places the label relative to the *field*. Both can appear on the same choice
+ * item and mean different things. Do not merge them.
+ *
+ * Field.tsx is the only component that reads this — every control gets the
+ * behaviour by rendering through it.
+ */
+export const LABEL_ORIENTATION =
+  "http://schools.nyc.gov/osh/StructureDefinition/label-orientation";
+
+export type LabelOrientation = "horizontal" | "vertical";
+
+export function readLabelOrientation(item: QuestionnaireItem): LabelOrientation {
+  const code = item.extension?.find((e) => e.url === LABEL_ORIENTATION)?.valueCode;
+  return code === "vertical" ? "vertical" : "horizontal";
+}
+
+/**
+ * The two ids Field.tsx renders, derived from an item's base id (`q-${linkId}`).
+ *
+ * A control needs them to wire aria-labelledby and aria-describedby onto its
+ * own input, which Field cannot do for it. Deriving them in one place is what
+ * keeps the two halves from drifting apart.
+ */
+export const labelIdOf = (id: string) => `${id}-label`;
+export const errorIdOf = (id: string) => `${id}-err`;
+
+/**
  * Address of one item occurrence within the response tree.
  *
  * A bare linkId is NOT enough: a repeating group has several occurrences of the

@@ -2207,7 +2207,7 @@ The tier a rule belongs to is decided by one question: **how many components use
 |---|---|---|
 | Global | `src/index.css` | Colour tokens, `:root`, `body`, bare element rules. **Not a module.** |
 | App shell | `src/App.module.css` | `.layout`, `.main`, `.modes` — the page frame, nothing about a form |
-| Shared vocabulary | `src/item-controls/item-controls.module.css` | `.item`, `.label`, `.value`, `.error`, `.group`, `.unsupported` |
+| Shared vocabulary | `src/item-controls/item-controls.module.css` | `.item`, `.label`, `.field`, `.vertical`, `.noLabel`, `.value`, `.error`, `.group`, `.unsupported` |
 | One control | `<Control>.module.css`, beside the `.tsx` | Everything that control alone uses |
 
 A rule earns the shared tier only when **more than one** control uses it. A rule used by
@@ -2243,6 +2243,57 @@ Name for the **role within this control** — `.root`, `.field`, `.options`, `.o
 and use camelCase, so `styles.optionsHorizontal` reads as an identifier rather than
 `styles["options-horizontal"]`.
 
+#### Label orientation, and why the grid is shared
+
+`.item` is a two-column grid — label on the left, field on the right — because that is the
+shape of nearly every row on the paper MAF. An item opts back into label-above-input with a
+local extension:
+
+```json
+{ "url": "http://schools.nyc.gov/osh/StructureDefinition/label-orientation",
+  "valueCode": "vertical" }
+```
+
+Absent, or any other value, means horizontal. Below 720px the shared sheet forces every item
+vertical regardless, so a horizontal item is never a horizontal scroll on a phone.
+
+Exactly one component reads that extension: `item-controls/Field.tsx`, the label / field /
+error shell every question control renders through. That is the whole reason it exists —
+seven controls were each hand-rolling the same four elements, so a layout change was a
+seven-file change. `Field` renders the label and the error node; the control keeps its own
+input and its own aria wiring, pointing at the ids `labelIdOf` / `errorIdOf` publish
+(`contract.ts`), which is what keeps the two halves from drifting apart.
+
+A `<legend>` cannot be laid out as a grid cell, so a control with a *set* of inputs (boolean
+Yes/No, choice radios and checkboxes) uses `role="radiogroup"` + `aria-labelledby` rather
+than `<fieldset>`/`<legend>`. It is the accessible equivalent with none of the layout
+constraints.
+
+**Two extensions are named for orientation and they are not the same thing.** HL7's
+`questionnaire-choiceOrientation` stacks the answer options against *each other*; the OSH
+`label-orientation` places the label against the *field*. Both can appear on one choice item
+and mean different things — the `orientation-demo` group in `toy-form-1.3.json` carries both
+on a single item to make the distinction concrete.
+
+The grid publishes its knobs as `--item-*` custom properties (listed at the top of
+`item-controls.module.css`). `ChoiceControl` used to own an equivalent `--choice-*` set for
+its own private grid; that grid is now the shared one, so the properties moved with it and
+`--choice-*` no longer exists. `RiskPanelControl.module.css` is the consumer — it flips
+`--item-field-order` above `--item-label-order` to put the answers before the question text,
+the way the paper MAF prints its Y/N/U panels.
+
+A custom property inherits to *every* descendant, though, and that panel needs the flip on
+its Y/N/U rows only: its conditional follow-ups ("How many times", "Last occurrence") must
+stay label-first, because an input ahead of the words reads backwards. So `Field` also
+stamps **`data-item-type`** on the wrapper, carrying the FHIR `item.type` verbatim, and the
+panel narrows the flip to `.rows [data-item-type="choice"]`.
+
+That is the escape hatch for "restyle *some* of my children". A scoped class name cannot
+cross a module boundary — deliberately — but an attribute can, and unlike a class name it
+carries meaning from the resource rather than from a stylesheet. Reach for a custom property
+first, since it needs no hook at all; reach for the attribute only when the container has to
+tell one kind of child from another.
+
 #### Why `index.css` is deliberately not a module
 
 CSS Modules scopes **class selectors**. It does not scope `:root`, `body`, `h1`, or any
@@ -2270,6 +2321,10 @@ hole by cross-referencing both directions and exiting non-zero on either:
 |---|---|
 | `styles.x` has no selector | The element renders with no class |
 | `.x` is never referenced | Dead CSS |
+
+One sharp edge: the audit finds selectors with a line-leading `.name`, and it does not parse
+comments. A comment line that *starts* with `.item` is read as a declaration of `.item` in
+that sheet, and then reported as dead CSS. Keep class names off the start of a comment line.
 
 Injecting `styles.claer` into `ChoiceControl` is the way to confirm the guard still works:
 `tsc` exits 0 and says nothing; the audit exits 1 and names the file and the key.
@@ -3954,7 +4009,8 @@ in a half-finished tree.
 | `web/src/App.module.css` | 3.9 | App shell: page frame, mode switcher |
 | `web/scripts/audit-css-modules.mjs` | 3.9 | `npm run audit:css` — catches unresolved style keys |
 | `web/src/api/questionnaires.ts` | 3.9 | Typed fetch clients |
-| `web/src/item-controls/contract.ts` | 3.2 | Props contract, `RenderMode`, predicates, FHIR type re-exports |
+| `web/src/item-controls/contract.ts` | 3.2 | Props contract, `RenderMode`, predicates, FHIR type re-exports, `label-orientation` |
+| `web/src/item-controls/Field.tsx` | 3.9 | Label / field / error shell every question control renders through |
 | `web/src/item-controls/index.ts` | 3.7 | `itemControlRegistry`, `resolveItemControl` |
 | `web/src/item-controls/item-controls.module.css` | 3.9 | Vocabulary shared by every control |
 | `web/src/item-controls/fhir/*.tsx` | 3.8 | 12 controls keyed by `item.type` |

@@ -4,13 +4,14 @@ import type {
   QuestionnaireItemProps,
   QuestionnaireResponseItemAnswer,
 } from "../contract";
-import { isEditable } from "../contract";
+import { errorIdOf, isEditable, labelIdOf } from "../contract";
+import { Field } from "../Field";
 import styles from "./ChoiceControl.module.css";
 import shared from "../item-controls.module.css";
 
 /**
- * Renders a `choice` item as a label on the left and a set of choices on the
- * right — the shape of nearly every row on the paper MAF.
+ * Renders a `choice` item as a label and a set of choices — by default the
+ * label on the left, the shape of nearly every row on the paper MAF.
  *
  * Everything configurable is configured from the Questionnaire, using
  * extensions HL7 already publishes. No OSH vocabulary appears in this file, so
@@ -23,10 +24,20 @@ import shared from "../item-controls.module.css";
  *   questionnaire-itemControl        'radio-button' | 'check-box' | 'drop-down'
  *   item.answerOption[]              the choices themselves.
  *
- * The itemControl extension read here is the HL7 one — a *presentation* hint.
- * It is NOT the OSH item-control extension in item-controls/index.ts, which
- * selects which component renders at all. Same idea, different URL, different
- * value type (CodeableConcept vs. code), different job. Do not merge them.
+ * Two extensions in this file are named for the same idea and do different
+ * jobs — check which one you mean before touching either:
+ *
+ *   questionnaire-itemControl (HL7)  a *presentation* hint within this control.
+ *     NOT the OSH item-control extension in item-controls/index.ts, which
+ *     selects which component renders at all. Different URL, different value
+ *     type (CodeableConcept vs. code).
+ *
+ *   questionnaire-choiceOrientation (HL7)  how the options stack against *each
+ *     other*, read below. NOT the OSH label-orientation extension in contract.ts,
+ *     which places the label relative to the *field*. Both can appear on the
+ *     same item and mean different things.
+ *
+ * Do not merge them.
  */
 
 const CHOICE_ORIENTATION =
@@ -133,8 +144,8 @@ export const ChoiceControl = ({
   mode,
 }: QuestionnaireItemProps) => {
   const id = `q-${item.linkId}`;
-  const errorId = `${id}-err`;
-  const labelId = `${id}-label`;
+  const errorId = errorIdOf(id);
+  const labelId = labelIdOf(id);
 
   const choices = (item.answerOption ?? [])
     .map(toChoice)
@@ -153,12 +164,9 @@ export const ChoiceControl = ({
   if (!isEditable(mode)) {
     const chosen = choices.filter((c) => selected.has(c.key)).map((c) => c.label);
     return (
-      <div className={hasLabel ? styles.root : `${styles.root} ${styles.noLabel}`}>
-        {hasLabel && <span className={styles.label}>{item.text}</span>}
-        <div className={styles.field}>
-          <span className={shared.value}>{chosen.length ? chosen.join(", ") : "—"}</span>
-        </div>
-      </div>
+      <Field item={item} id={id} errors={[]}>
+        <span className={shared.value}>{chosen.length ? chosen.join(", ") : "—"}</span>
+      </Field>
     );
   }
 
@@ -238,41 +246,27 @@ export const ChoiceControl = ({
     );
 
   return (
-    <div className={hasLabel ? styles.root : `${styles.root} ${styles.noLabel}`}>
-      {hasLabel &&
-        (presentation === "dropdown" ? (
-          <label className={styles.label} id={labelId} htmlFor={id}>
-            {item.text}
-            {item.required && <span aria-hidden="true"> *</span>}
-          </label>
-        ) : (
-          <span className={styles.label} id={labelId}>
-            {item.text}
-            {item.required && <span aria-hidden="true"> *</span>}
-          </span>
-        ))}
+    // Only the drop-down has a single focusable input to point a real <label>
+    // at; the radio and checkbox groups keep aria-labelledby instead.
+    <Field
+      item={item}
+      id={id}
+      errors={errors}
+      htmlFor={presentation === "dropdown" ? id : undefined}
+    >
+      {field}
 
-      <div className={styles.field}>
-        {field}
-
-        {/* A radio group cannot be cleared by clicking, so an optional item
-            would otherwise be a one-way door after a misclick. */}
-        {presentation === "radio" && !item.required && selected.size > 0 && (
-          <button
-            type="button"
-            className={styles.clear}
-            onClick={() => setAnswers([])}
-          >
-            Clear
-          </button>
-        )}
-
-        {errors.length > 0 && (
-          <div id={errorId} role="alert" className={shared.error}>
-            {errors.join(" ")}
-          </div>
-        )}
-      </div>
-    </div>
+      {/* A radio group cannot be cleared by clicking, so an optional item
+          would otherwise be a one-way door after a misclick. */}
+      {presentation === "radio" && !item.required && selected.size > 0 && (
+        <button
+          type="button"
+          className={styles.clear}
+          onClick={() => setAnswers([])}
+        >
+          Clear
+        </button>
+      )}
+    </Field>
   );
 };
