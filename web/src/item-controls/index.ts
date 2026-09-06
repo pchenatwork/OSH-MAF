@@ -1,5 +1,9 @@
 import type { QuestionnaireItem, QuestionnaireItemControl } from "./contract";
 import * as Fhir from "./fhir";
+import { AttestationControl } from "./osh/AttestationControl";
+import { MedicationOrderControl } from "./osh/MedicationOrderControl";
+import { RiskPanelControl } from "./osh/RiskPanelControl";
+import { SignatureBlockControl } from "./osh/SignatureBlockControl";
 
 export type {
   QuestionnaireItemProps,
@@ -28,6 +32,11 @@ const itemControlRegistry: Record<string, QuestionnaireItemControl> = {
   display: Fhir.DisplayControl,
   group: Fhir.GroupControl,
   // OSH controls appended here as they are built
+  // local item-control codes
+  "osh-signature-block": SignatureBlockControl,
+  "osh-medication-order": MedicationOrderControl,
+  "osh-attestation": AttestationControl,
+  "osh-risk-panel": RiskPanelControl,
 };
 
 export function resolveItemControl(

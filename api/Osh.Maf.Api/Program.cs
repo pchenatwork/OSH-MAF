@@ -1,5 +1,7 @@
 using Hl7.Fhir.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Osh.Maf.Api;
+using Osh.Maf.Api.Serialization;
 using Osh.Maf.Api.Validation;
 using Osh.Maf.Data;
 using Scalar.AspNetCore;
@@ -11,7 +13,8 @@ builder.Services
     {
         // ** Assume ALL the endpoints emit 'application/fhir+json' **
         // Revise if we have some other endpoints in this project that is not dealing with FHIR
-        options.Filters.Add(new ProducesAttribute("application/fhir+json"));
+        options.Filters.Add(new ProducesAttribute("application/fhir+json")); 
+        options.Filters.Add<FhirDeserializationFilter>();
     })
     .AddJsonOptions(o => o.JsonSerializerOptions.ForFhir());
 
@@ -71,5 +74,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+
+app.Use(async (ctx, next) =>
+{
+    // ?? The third error tier on Content negotiation 415/406, see developer-guide
+    await next();
+    if (ctx.Response.StatusCode >= 400
+        && !ctx.Response.HasStarted
+        && ctx.Response.ContentLength is null or 0
+        && ctx.Request.Path.StartsWithSegments("/fhir"))
+    {
+        ctx.Response.ContentType = "application/fhir+json";
+        await ctx.Response.WriteAsync(FhirJson.Serialize(
+            Outcomes.FromMessages(
+                [$"Request failed with status {ctx.Response.StatusCode}."])));
+    }
+});
+
 app.MapControllers();
 app.Run();

@@ -83,3 +83,15 @@ fieldset.group > legend {
   max-height: 80vh;
   overflow: auto;
 }
+/**********used by 'item-controls/osh/MedicationOrderControl.tsx' *************************/
+.order__grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 2fr;
+  gap: 0.75rem;
+  align-items: end;
+}
+@media (max-width: 720px) {
+  .order__grid {
+    grid-template-columns: 1fr;
+  }
+}

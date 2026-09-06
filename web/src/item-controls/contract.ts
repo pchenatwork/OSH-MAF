@@ -45,15 +45,35 @@ export const isEditable = (mode: RenderMode): boolean => mode === "edit";
 /** True when rendering for paper rather than screen. */
 export const isPrint = (mode: RenderMode): boolean => mode === "print";
 
+/**
+ * Address of one item occurrence within the response tree.
+ *
+ * A bare linkId is NOT enough: a repeating group has several occurrences of the
+ * same linkId, and they must be addressable separately. Asthma has no repeating
+ * groups so every path here is length-1 with index 0 — but General, Seizure and
+ * Diabetes all have order tables, and retrofitting a path later means rewriting
+ * every control.
+ */
+export type ItemPath = ReadonlyArray<{ linkId: string; index: number }>;
+
 /** Props for a component that renders one Questionnaire.item. */
 export interface QuestionnaireItemProps {
   item: QuestionnaireItem;
+  path: ItemPath;
   answers: QuestionnaireResponseItemAnswer[];
   setAnswers: (answers: QuestionnaireResponseItemAnswer[]) => void;
   errors: string[];
   mode: RenderMode;
-  //readOnly: boolean;          // item level Read-only controlled/resolved by the walker
-  children?: ReactNode; // populated only for group items
+
+  /** Children in document order. Group items only. */
+  children?: ReactNode;
+
+  /**
+   * The same children, already rendered, keyed by their linkId — so a custom
+   * control can place them individually instead of accepting document order.
+   * Group items only. See §6.4.
+   */
+  childSlots?: Record<string, ReactNode>;
 }
 
 /** A component that renders one Questionnaire.item. */

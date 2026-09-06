@@ -7,7 +7,9 @@ import { ResponseInspector } from "./renderer/ResponseInspector";
 import type { RenderMode } from "./item-controls/contract";
 import "./App.css";
 
-const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
+//const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/toy";
+const TOY_URL = "http://schools.nyc.gov/osh/Questionnaire/asthma-maf";
+const VERSION = "2026.02";
 
 export default function App() {
   const [mode, setMode] = useState<RenderMode>("edit");
@@ -23,8 +25,8 @@ export default function App() {
     isPending,
     error,
   } = useQuery({
-    queryKey: ["questionnaire", TOY_URL, "1.1"],
-    queryFn: () => fetchQuestionnaire(TOY_URL, "1.1"),
+    queryKey: ["questionnaire", TOY_URL, VERSION],
+    queryFn: () => fetchQuestionnaire(TOY_URL, VERSION),
   });
 
   if (isPending) return <p>Loading definition…</p>;
